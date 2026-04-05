@@ -232,11 +232,14 @@
     }
 
     function fileSave() {
-        alert("未実装");
+        localStorage.setItem("data", main.innerHTML);
     }
 
     function fileLoad() {
-        alert("未実装");
+        const data = localStorage.getItem("data");
+        if (data) {
+            main.innerHTML = data;
+        }
     }
 </script>
 
