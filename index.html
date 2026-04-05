@@ -2,18 +2,68 @@
 
 <head>
     <title>Fastscrap</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@100..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@100..700&display=swap"
+        rel="stylesheet">
     <style>
-        html, body {
-            font-family: 'Source Code Pro', 'M PLUS 1 Code', monospace;
+        * {
+            font-family: 'M PLUS 1 Code', monospace;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            height: 25px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .menu {
+            margin-left: 20px;
+            cursor: pointer;
+        }
+
+        .menu {
+            position: relative;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #ccc;
+            min-width: 120px;
+
+            display: none;
+            /* ← ここ重要 */
+        }
+
+        .dropdown.show {
+            display: block;
+        }
+
+        .item {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .item:hover {
+            background: #eee;
         }
 
         .container {
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             height: 100vh;
         }
 
@@ -22,6 +72,7 @@
             height: 80%;
             border: 1px solid #ccc;
             padding: 10px;
+            margin: 20px auto;
             box-sizing: border-box;
             font-size: 16px;
         }
@@ -30,84 +81,177 @@
             width: 360px;
             aspect-ratio: 16/9;
         }
-        
+
         .inserted-image {
             max-width: 40%;
             height: auto;
+        }
+
+        #fileInput {
+            display: none;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
+        <div class="topbar">
+            <div class="menu">
+                <span class="menu-button">ファイル</span>
+                <div class="dropdown">
+                    <div class="item" onclick="fileSave()">保存</div>
+                    <div class="item" onclick="fileLoad()">読み込み</div>
+                </div>
+            </div>
+
+            <div class="menu">
+                <span class="menu-button">挿入</span>
+                <div class="dropdown">
+                    <div class="item" onclick="insertImageFromFile()">画像</div>
+                </div>
+            </div>
+        </div>
         <div class="main" contenteditable="true">
         </div>
         <input type="file" id="fileInput" accept="image/*">
     </div>
 </body>
 <script>
-const main = document.querySelector('.main');
+    const main = document.querySelector('.main');
 
-main.addEventListener('paste', function (e) {
-    e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData("text");
-    handlePaste(text);
-});
-
-function handlePaste(text) {
-    if (/youtube\.com|youtu\.be/.test(text)) {
-        pasteYoutube(text);
+    //　クソコード　滅びよ
+    function insertImageFromFile() {
+        document.getElementById("fileInput").click();
     }
-}
 
-function getYouTubeId(url) {
-    try {
-        const u = new URL(url);
+    main.addEventListener('paste', function (e) {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData("text");
+        handlePaste(text);
+    });
 
-        if (u.hostname.includes("youtu.be")) {
-            return u.pathname.slice(1);
+    //　ファイル選択ダイアログを開く
+    function pasteImageFromFile() {
+        document.getElementById("fileInput").click();
+    }
+
+    // クリップボードからYouTube URLを貼り付ける
+    function handlePaste(text) {
+        if (/youtube\.com|youtu\.be/.test(text)) {
+            pasteYoutube(text);
         }
-
-        return u.searchParams.get("v");
-    } catch {
-        console.log("")
-        return null;
     }
-}
 
-function pasteYoutube(text) {
-    const videoId = getYouTubeId(text);
-    if (!videoId) return;
+    //　YouTubeのURLから動画IDを抽出
+    function getYouTubeId(url) {
+        try {
+            const u = new URL(url);
 
-    const html = `
+            if (u.hostname.includes("youtu.be")) {
+                return u.pathname.slice(1);
+            }
+
+            return u.searchParams.get("v");
+        } catch {
+            console.log("")
+            return null;
+        }
+    }
+
+    // youtubeのプレビュー要素を挿入する。
+
+    function pasteYoutube(text) {
+        const videoId = getYouTubeId(text);
+        if (!videoId) return;
+
+        const html = `
         <iframe class="youtube-preview" src="https://www.youtube.com/embed/${videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
     `;
 
-    main.insertAdjacentHTML('beforeend', html);
-    main.insertAdjacentHTML('beforeend', '<div><br></div>'); // 改行を追加
-}
+        main.insertAdjacentHTML('beforeend', html);
+        main.insertAdjacentHTML('beforeend', '<div><br></div>'); // 改行を追加
+    }
 
-function handleDeleteYoutube(videoId) {
-    if (!confirm("Delete this YouTube preview?")) return;
-    const el = document.getElementById(`youtube-${videoId}`);
-    if (el) el.remove();
-}
-document.getElementById("fileInput").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
+    // youtubeプレビューを削除する.
 
-    reader.onload = function (event) {
-        insertImage(event.target.result);
-    };
+    function handleDeleteYoutube(videoId) {
+        if (!confirm("Delete this YouTube preview?")) return;
+        const el = document.getElementById(`youtube-${videoId}`);
+        if (el) el.remove();
+    }
 
-    reader.readAsDataURL(file);
-});
 
-function insertImage(dataBase64) {
-    const imageForHtml = `<img src="${dataBase64}" alt="Pasted Image" class="inserted-image">`;
-    main.insertAdjacentHTML('beforeend', imageForHtml);
-    main.insertAdjacentHTML('beforeend', '<div><br></div>'); //
-}
+    // ファイル選択後、画像をbase64で挿入する
+    document.getElementById("fileInput").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        compressImage(file, file.name, insertImage);
+
+    });
+
+    // 画像をbase64で挿入
+    function insertImage(dataBase64, fileName) {
+        const imageForHtml = `<img src="${dataBase64}" alt="${fileName}" class="inserted-image">`;
+        main.insertAdjacentHTML('beforeend', imageForHtml);
+        main.insertAdjacentHTML('beforeend', '<div><br></div>'); // 改行を追加
+    }
+
+    const buttons = document.querySelectorAll('.menu-button');
+
+    // ドロップダウンの表示切り替え
+    buttons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const dropdown = btn.nextElementSibling;
+
+            document.querySelectorAll('.dropdown').forEach(d => {
+                if (d !== dropdown) d.classList.remove('show');
+            });
+
+            dropdown.classList.toggle('show');
+            e.stopPropagation();
+        });
+    });
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.dropdown').forEach(d => {
+            d.classList.remove('show');
+        });
+    });
+
+    //　ファイル圧縮関数。
+    function compressImage(file, fileName, callback) {
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onload = e => {
+            img.src = e.target.result;
+        };
+
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            const scale = 0.5; // サイズ半分
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            const compressed = canvas.toDataURL("image/jpeg", 0.7);
+            callback(compressed, fileName);
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    function fileSave() {
+        alert("未実装");
+    }
+
+    function fileLoad() {
+        alert("未実装");
+    }
 </script>
 
 </html>
