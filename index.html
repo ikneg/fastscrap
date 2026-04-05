@@ -1,0 +1,115 @@
+<html>
+
+<head>
+    <title>Fastscrap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@100..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            font-family: 'Source Code Pro', 'M PLUS 1 Code', monospace;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .main {
+            width: 80%;
+            height: 80%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .youtube-preview {
+            width: 360px;
+            aspect-ratio: 16/9;
+        }
+        
+        .inserted-image {
+            max-width: 40%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="main" contenteditable="true">
+        </div>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+</body>
+<script>
+const main = document.querySelector('.main');
+
+main.addEventListener('paste', function (e) {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData("text");
+    handlePaste(text);
+});
+
+function handlePaste(text) {
+    if (/youtube\.com|youtu\.be/.test(text)) {
+        pasteYoutube(text);
+    }
+}
+
+function getYouTubeId(url) {
+    try {
+        const u = new URL(url);
+
+        if (u.hostname.includes("youtu.be")) {
+            return u.pathname.slice(1);
+        }
+
+        return u.searchParams.get("v");
+    } catch {
+        console.log("")
+        return null;
+    }
+}
+
+function pasteYoutube(text) {
+    const videoId = getYouTubeId(text);
+    if (!videoId) return;
+
+    const html = `
+        <iframe class="youtube-preview" src="https://www.youtube.com/embed/${videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    `;
+
+    main.insertAdjacentHTML('beforeend', html);
+    main.insertAdjacentHTML('beforeend', '<div><br></div>'); // 改行を追加
+}
+
+function handleDeleteYoutube(videoId) {
+    if (!confirm("Delete this YouTube preview?")) return;
+    const el = document.getElementById(`youtube-${videoId}`);
+    if (el) el.remove();
+}
+document.getElementById("fileInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+        insertImage(event.target.result);
+    };
+
+    reader.readAsDataURL(file);
+});
+
+function insertImage(dataBase64) {
+    const imageForHtml = `<img src="${dataBase64}" alt="Pasted Image" class="inserted-image">`;
+    main.insertAdjacentHTML('beforeend', imageForHtml);
+    main.insertAdjacentHTML('beforeend', '<div><br></div>'); //
+}
+</script>
+
+</html>
+
+</html>
