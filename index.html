@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@100..700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@100..700&display=swap" rel="stylesheet">
     <style>
         * {
             font-family: 'M PLUS 1 Code', monospace;
@@ -116,6 +114,8 @@
         <input type="file" id="fileInput" accept="image/*">
     </div>
 </body>
+<!-- 画像圧縮DOM -->
+<script src="https://cdn.jsdelivr.net/npm/browser-image-compression"></script>
 <script>
     const main = document.querySelector('.main');
 
@@ -186,7 +186,8 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        compressImage(file, file.name, insertImage);
+        compress(file);
+        e.target.value = ""; // 同じファイルを再度選択できるようにする
 
     });
 
@@ -219,30 +220,15 @@
         });
     });
 
-    //　ファイル圧縮関数。
-    function compressImage(file, fileName, callback) {
-        const img = new Image();
+    async function compress(file) {
+        const compressedFile = await imageCompression(file, {
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 800,
+        });
+
         const reader = new FileReader();
-
-        reader.onload = e => {
-            img.src = e.target.result;
-        };
-
-        img.onload = () => {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-
-            const scale = 0.5; // サイズ半分
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
-
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            const compressed = canvas.toDataURL("image/jpeg", 0.7);
-            callback(compressed, fileName);
-        };
-
-        reader.readAsDataURL(file);
+        reader.onload = e => insertImage(e.target.result, file.name);
+        reader.readAsDataURL(compressedFile);
     }
 
     function fileSave() {
