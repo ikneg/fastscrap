@@ -6,89 +6,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@100..700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            font-family: 'M PLUS 1 Code', monospace;
-        }
-
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-        }
-
-        .topbar {
-            display: flex;
-            align-items: center;
-            height: 25px;
-            background-color: #f0f0f0;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .menu {
-            margin-left: 20px;
-            cursor: pointer;
-        }
-
-        .menu {
-            position: relative;
-        }
-
-        .dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background: white;
-            border: 1px solid #ccc;
-            min-width: 120px;
-
-            display: none;
-            /* ← ここ重要 */
-        }
-
-        .dropdown.show {
-            display: block;
-        }
-
-        .item {
-            padding: 8px;
-            cursor: pointer;
-        }
-
-        .item:hover {
-            background: #eee;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .main {
-            width: 80%;
-            height: 80%;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 20px auto;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-
-        .youtube-preview {
-            width: 360px;
-            aspect-ratio: 16/9;
-        }
-
-        .inserted-image {
-            max-width: 40%;
-            height: auto;
-        }
-
-        #fileInput {
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body>
@@ -97,15 +15,15 @@
             <div class="menu">
                 <span class="menu-button">ファイル</span>
                 <div class="dropdown">
-                    <div class="item" onclick="fileSave()">保存</div>
-                    <div class="item" onclick="fileLoad()">読み込み</div>
+                    <div class="item" id="fileSave">保存</div>
+                    <div class="item" id="fileLoad">読み込み</div>
                 </div>
             </div>
 
             <div class="menu">
                 <span class="menu-button">挿入</span>
                 <div class="dropdown">
-                    <div class="item" onclick="insertImageFromFile()">画像</div>
+                    <div class="item" id="importImage">画像</div>
                 </div>
             </div>
         </div>
@@ -117,132 +35,14 @@
 <!-- 画像圧縮DOM -->
 <script src="https://cdn.jsdelivr.net/npm/browser-image-compression"></script>
 <script>
-    const main = document.querySelector('.main');
-
-    //　クソコード　滅びよ
-    function insertImageFromFile() {
-        document.getElementById("fileInput").click();
-    }
-
-    main.addEventListener('paste', function (e) {
-        e.preventDefault();
-        const text = (e.clipboardData || window.clipboardData).getData("text");
-        handlePaste(text);
-    });
-
-    //　ファイル選択ダイアログを開く
-    function pasteImageFromFile() {
-        document.getElementById("fileInput").click();
-    }
-
-    // クリップボードからYouTube URLを貼り付ける
-    function handlePaste(text) {
-        if (/youtube\.com|youtu\.be/.test(text)) {
-            pasteYoutube(text);
-        }
-    }
-
-    //　YouTubeのURLから動画IDを抽出
-    function getYouTubeId(url) {
-        try {
-            const u = new URL(url);
-
-            if (u.hostname.includes("youtu.be")) {
-                return u.pathname.slice(1);
-            }
-
-            return u.searchParams.get("v");
-        } catch {
-            console.log("")
-            return null;
-        }
-    }
-
-    // youtubeのプレビュー要素を挿入する。
-
-    function pasteYoutube(text) {
-        const videoId = getYouTubeId(text);
-        if (!videoId) return;
-
-        const html = `
-        <iframe class="youtube-preview" src="https://www.youtube.com/embed/${videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-    `;
-
-        main.insertAdjacentHTML('beforeend', html);
-        main.insertAdjacentHTML('beforeend', '<div><br></div>'); // 改行を追加
-    }
-
-    // youtubeプレビューを削除する.
-
-    function handleDeleteYoutube(videoId) {
-        if (!confirm("Delete this YouTube preview?")) return;
-        const el = document.getElementById(`youtube-${videoId}`);
-        if (el) el.remove();
-    }
-
-
-    // ファイル選択後、画像をbase64で挿入する
-    document.getElementById("fileInput").addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        compress(file);
-        e.target.value = ""; // 同じファイルを再度選択できるようにする
-
-    });
-
-    // 画像をbase64で挿入
-    function insertImage(dataBase64, fileName) {
-        const imageForHtml = `<img src="${dataBase64}" alt="${fileName}" class="inserted-image">`;
-        main.insertAdjacentHTML('beforeend', imageForHtml);
-        main.insertAdjacentHTML('beforeend', '<div><br></div>'); // 改行を追加
-    }
-
-    const buttons = document.querySelectorAll('.menu-button');
-
-    // ドロップダウンの表示切り替え
-    buttons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const dropdown = btn.nextElementSibling;
-
-            document.querySelectorAll('.dropdown').forEach(d => {
-                if (d !== dropdown) d.classList.remove('show');
-            });
-
-            dropdown.classList.toggle('show');
-            e.stopPropagation();
-        });
-    });
-
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.dropdown').forEach(d => {
-            d.classList.remove('show');
-        });
-    });
-
-    async function compress(file) {
-        const compressedFile = await imageCompression(file, {
-            maxSizeMB: 0.2,
-            maxWidthOrHeight: 800,
-        });
-
-        const reader = new FileReader();
-        reader.onload = e => insertImage(e.target.result, file.name);
-        reader.readAsDataURL(compressedFile);
-    }
-
-    function fileSave() {
-        localStorage.setItem("data", main.innerHTML);
-    }
-
-    function fileLoad() {
-        const data = localStorage.getItem("data");
-        if (data) {
-            main.innerHTML = data;
-        }
-    }
+    const main = document.querySelector(".main");
+    const buttons = document.querySelectorAll(".menu-button");
 </script>
-
+<script type="module" src="/js/config.js"></script>
+<script type="module" src="/js/dropdown.js"></script>
+<script type="module" src="/js/image.js"></script>
+<script type="module" src="/js/storage.js"></script>
+<script type="module" src="/js/youtube-preview.js"></script>
 </html>
 
 </html>

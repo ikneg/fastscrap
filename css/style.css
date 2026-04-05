@@ -1,0 +1,81 @@
+        * {
+            font-family: 'M PLUS 1 Code', monospace;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            height: 25px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .menu {
+            margin-left: 20px;
+            cursor: pointer;
+        }
+
+        .menu {
+            position: relative;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #ccc;
+            min-width: 120px;
+
+            display: none;
+            /* ← ここ重要 */
+        }
+
+        .dropdown.show {
+            display: block;
+        }
+
+        .item {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .item:hover {
+            background: #eee;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .main {
+            width: 80%;
+            height: 80%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 20px auto;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .youtube-preview {
+            width: 360px;
+            aspect-ratio: 16/9;
+        }
+
+        .inserted-image {
+            max-width: 40%;
+            height: auto;
+        }
+
+        #fileInput {
+            display: none;
+        }
